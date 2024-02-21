@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, Float, DateTime
+from datetime import datetime
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -10,6 +11,7 @@ class Restaurant(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(50), unique=True)
 
+
 class Feedback(Base):
     __tablename__ = "feedback"
 
@@ -20,12 +22,14 @@ class Feedback(Base):
     restaurant_id = Column(ForeignKey("restaurant.id"))
     client_id = Column(ForeignKey("client.id"))
 
+
 class Client(Base):
     __tablename__ = "client"
 
     id = Column(Integer, primary_key=True)
     chat_id = Column(Integer, unique=True)
     name = Column(String)
+
 
 class Order(Base):
     __tablename__ = "order"
@@ -36,6 +40,7 @@ class Order(Base):
     data = Column(DateTime, default=datetime.now)
     comment = Column(String(500))
     client_id = Column(ForeignKey("client.id"))
+
 
 class Dishe(Base):
     __tablename__ = "dishe"

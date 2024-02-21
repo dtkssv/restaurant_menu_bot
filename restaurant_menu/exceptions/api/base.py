@@ -11,7 +11,4 @@ class BaseAPIException(Exception, abc.ABC):
 
 class InternalServerException(BaseAPIException):
     def response(self):
-        return PlainTextResponse(
-            content="Internal server error",
-            status_code=500
-        )
+        return PlainTextResponse(content="Internal server error", status_code=500)
