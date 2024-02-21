@@ -1,3 +1,3 @@
-from fastapi-project.app import run
+from restaurant_menu.app import run
 
 run()
