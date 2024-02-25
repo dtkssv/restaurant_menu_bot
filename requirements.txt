@@ -7,3 +7,4 @@ sqlalchemy
 black
 requests
 pytest
+alembic

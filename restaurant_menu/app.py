@@ -23,4 +23,4 @@ def run():
 
 @app.get("/")
 async def read_main():
-    return {"msg": "Hello World"}
+    return {"msg": "Валентин, С Днём Рождения!!! И хватит с мужиками на рендом кофе ходить"}
