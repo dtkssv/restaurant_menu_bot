@@ -21,7 +21,7 @@ class APISettings(BaseSettings):
     """Settings related with the FastAPI server"""
 
     host: str = "0.0.0.0"
-    port: int = 5000
+    port: int = 8000
 
     class Config(BaseSettings.Config):
         env_prefix = "API_"
