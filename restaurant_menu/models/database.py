@@ -1,10 +1,10 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
-SQLALCHEMY_DATABASE_URL = "postgresql://vaiaviral:12345@postgresserver/db"
+SQLALCHEMY_DATABASE_URL = "postgresql://vaisviral:12345@postgresserver/db"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, echo=True, connect_args={"check_same_thread": False}
@@ -12,10 +12,6 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
-
-with engine.begin() as conn:
-    res = conn.execute("SELECT VERSION")
-    print(f"{res=}")
 
 
 @asynccontextmanager
