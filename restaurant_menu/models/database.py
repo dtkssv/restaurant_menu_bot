@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
-SQLALCHEMY_DATABASE_URL = "postgresql://vaisviral:12345@postgresserver/db"
+SQLALCHEMY_DATABASE_URL = "postgresql://bot:12345@localhost:5432/res_meny"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, echo=True, connect_args={"check_same_thread": False}
