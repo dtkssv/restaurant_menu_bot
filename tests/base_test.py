@@ -5,6 +5,8 @@ from requests import Session, Response
 
 from restaurant_menu.app import app
 
+client = TestClient(app)
+
 
 class BaseAPITest:
     """Base API test class that starts a fastapi TestClient (https://fastapi.tiangolo.com/tutorial/testing/)."""
