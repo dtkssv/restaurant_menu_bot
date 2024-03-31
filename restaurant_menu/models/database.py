@@ -15,6 +15,7 @@ Base = declarative_base()
 metadata = MetaData()
 Base.metadata = metadata
 
+
 class Restaurant(Base):
     __tablename__ = "restaurant"
 
@@ -36,8 +37,8 @@ class Feedback(Base):
 class Client(Base):
     __tablename__ = "client"
 
-    id = Column(BigInteger, primary_key=True)  # исользуются большие значения
-    chat_id = Column(Integer, unique=True)
+    id = Column(Integer, primary_key=True)  # исользуются большие значения
+    chat_id = Column(BigInteger, unique=True)
     name = Column(String)
 
 
