@@ -1,13 +1,14 @@
 from datetime import datetime
-from sqlalchemy import create_engine, MetaData, Column, ForeignKey, Integer, String, Float, DateTime, BigInteger, SmallInteger, Table
+from sqlalchemy import (create_engine, MetaData, Column, ForeignKey, Integer, String, Float, DateTime, BigInteger,
+                        SmallInteger, Table)
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
-SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://bot:12345@localhost:5432/res_meny"
+SQLALCHEMY_DATABASE_URL = "postgresql://bot:12345@localhost:5432/res_meny"
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, echo=True, connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URL
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
