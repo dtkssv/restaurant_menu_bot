@@ -1,10 +1,10 @@
 from datetime import datetime
-from sqlalchemy import create_engine, MetaData, Column, ForeignKey, Integer, String, Float, DateTime, BigInteger, SmallInteger
+from sqlalchemy import create_engine, MetaData, Column, ForeignKey, Integer, String, Float, DateTime, BigInteger, SmallInteger, Table
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
-SQLALCHEMY_DATABASE_URL = "postgresql://bot:12345@localhost:5432/res_meny"
+SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://bot:12345@localhost:5432/res_meny"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, echo=True, connect_args={"check_same_thread": False}
@@ -19,7 +19,7 @@ Base.metadata = metadata
 class Restaurant(Base):
     __tablename__ = "restaurant"
 
-    id = Column(SmallInteger, primary_key=True)  # Используются маленькие значения
+    id = Column(SmallInteger, primary_key=True)
     name = Column(String(50), unique=True)
 
 
@@ -37,22 +37,15 @@ class Feedback(Base):
 class Client(Base):
     __tablename__ = "client"
 
-    id = Column(Integer, primary_key=True)  # исользуются большие значения
+    id = Column(Integer, primary_key=True)
     chat_id = Column(BigInteger, unique=True)
     name = Column(String)
 
 
-class Order(Base):
-    __tablename__ = "order"
-
-    id = Column(Integer, primary_key=True)
-    dish = Column(String(50))
-    cost = Column(Float)
-    data = Column(DateTime, default=datetime.now)
-    comment = Column(String(500))
-    client_id = Column(ForeignKey("client.id"))
-# Отношение many to many через association table
-    dish_replied = relationship("Dishe", back_populates="order_replied", secondary="DisheOrder")
+DisheOrder = Table('DisheOrder', Base.metadata,
+    Column('dishe_id', Integer(), ForeignKey("dishe.id")),
+    Column('order_id', Integer(), ForeignKey("order.id"))
+)
 
 
 class Dishe(Base):
@@ -64,16 +57,18 @@ class Dishe(Base):
     type = Column(String(20))
     description = Column(String(500))
     restaurant_id = Column(ForeignKey("restaurant.id"))
-# Отношение many to many через association table
-    order_replied = relationship("Order", back_populates="dish_replied", secondary="DisheOrder")
 
 
-# association table
-class DisheOrder(Base):
-    __tablename__ = "dishe_order"
+class Order(Base):
+    __tablename__ = "order"
 
-    dishe_id = Column(ForeignKey("dishe.id"), primary_key=True)
-    order_id = Column(ForeignKey("order.id"), primary_key=True)
+    id = Column(Integer, primary_key=True)
+    dish = Column(String(50))
+    cost = Column(Float)
+    data = Column(DateTime, default=datetime.now)
+    comment = Column(String(500))
+    client_id = Column(ForeignKey("client.id"))
+    dish_replied = relationship("Dishe", secondary=DisheOrder)
 
 
 @asynccontextmanager
