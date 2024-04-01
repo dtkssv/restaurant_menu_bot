@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 SQLALCHEMY_DATABASE_URL = "postgresql://bot:12345@localhost:5432/res_meny"
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL
+    SQLALCHEMY_DATABASE_URL, echo=True
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -32,7 +32,6 @@ class Feedback(Base):
     feedback = Column(String(500))
     stars = Column(Integer)
     restaurant_id = Column(ForeignKey("restaurant.id"))
-    client_id = Column(ForeignKey("client.id"))
 
 
 class Client(Base):
