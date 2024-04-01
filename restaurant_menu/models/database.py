@@ -42,14 +42,21 @@ class Client(Base):
     name = Column(String)
 
 
-DisheOrder = Table('DisheOrder', Base.metadata,
-    Column('dishe_id', Integer(), ForeignKey("dishe.id")),
-    Column('order_id', Integer(), ForeignKey("order.id"))
-)
+# Dish_Order = Table('Dish_Order',
+#                    Base.metadata,
+#                    Column('dish_id', ForeignKey("dish.id"), primary_key=True),
+#                    Column('order_id', ForeignKey("order.id"), primary_key=True)
+# )
 
+class Dish_Order(Base):
+    __tablename__ = "Dish_Order"
+    dish_id = Column(ForeignKey("dish.id"), primary_key=True)
+    order_id = Column(ForeignKey("order.id"), primary_key=True)
+    dish = relationship("Dish", back_populates="orders")
+    order = relationship("Order", back_populates="dishes")
 
-class Dishe(Base):
-    __tablename__ = "dishe"
+class Dish(Base):
+    __tablename__ = "dish"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(50))
@@ -57,18 +64,19 @@ class Dishe(Base):
     type = Column(String(20))
     description = Column(String(500))
     restaurant_id = Column(ForeignKey("restaurant.id"))
+    orders = relationship("Dish_Order", back_populates="dish")
+    # order = relationship("Order", secondary=Dish_Order, back_populates='dish')
 
 
 class Order(Base):
     __tablename__ = "order"
 
     id = Column(Integer, primary_key=True)
-    dish = Column(String(50))
-    cost = Column(Float)
     data = Column(DateTime, default=datetime.now)
-    comment = Column(String(500))
+    comment = Column(String(500), nullable=True)
     client_id = Column(ForeignKey("client.id"))
-    dish_replied = relationship("Dishe", secondary=DisheOrder)
+    dishes = relationship("Dish_Order", back_populates="order")
+    # dish = relationship("Dish", secondary=Dish_Order, back_populates='order')
 
 
 @asynccontextmanager

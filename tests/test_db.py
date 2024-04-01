@@ -36,7 +36,19 @@ dish = [
 ]
 
 
+order = [
 
+]
+class Order(Base):
+    __tablename__ = "order"
+
+    id = Column(Integer, primary_key=True)
+    dish = Column(String(50))
+    cost = Column(Float)
+    data = Column(DateTime, default=datetime.now)
+    comment = Column(String(500))
+    client_id = Column(ForeignKey("client.id"))
+    dish_replied = relationship("Dishe", secondary=DisheOrder)
 
 with SessionLocal() as session:
    session.query()
