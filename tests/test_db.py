@@ -85,4 +85,4 @@ def test_1():
 
 
 def test_2():
-    pass
+    create_order(1,[1,6,3])
