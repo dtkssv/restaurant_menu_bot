@@ -42,18 +42,13 @@ class Client(Base):
     name = Column(String)
 
 
-# Dish_Order = Table('Dish_Order',
-#                    Base.metadata,
-#                    Column('dish_id', ForeignKey("dish.id"), primary_key=True),
-#                    Column('order_id', ForeignKey("order.id"), primary_key=True)
-# )
-
 class Dish_Order(Base):
     __tablename__ = "Dish_Order"
     dish_id = Column(ForeignKey("dish.id"), primary_key=True)
     order_id = Column(ForeignKey("order.id"), primary_key=True)
     dish = relationship("Dish", back_populates="orders")
     order = relationship("Order", back_populates="dishes")
+
 
 class Dish(Base):
     __tablename__ = "dish"
@@ -65,7 +60,6 @@ class Dish(Base):
     description = Column(String(500))
     restaurant_id = Column(ForeignKey("restaurant.id"))
     orders = relationship("Dish_Order", back_populates="dish")
-    # order = relationship("Order", secondary=Dish_Order, back_populates='dish')
 
 
 class Order(Base):
@@ -76,7 +70,6 @@ class Order(Base):
     comment = Column(String(500), nullable=True)
     client_id = Column(ForeignKey("client.id"))
     dishes = relationship("Dish_Order", back_populates="order")
-    # dish = relationship("Dish", secondary=Dish_Order, back_populates='order')
 
 
 @asynccontextmanager
