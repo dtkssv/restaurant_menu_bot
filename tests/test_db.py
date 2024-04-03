@@ -3,18 +3,18 @@ from sqlalchemy import text
 # import pytest
 
 
-client = [
-    Client(chat_id=743509842, name="Valentin"),
-    Client(chat_id=196569076, name="Oleg"),
-    Client(chat_id=987656842, name="Vadim"),
-    Client(chat_id=357907532, name="Sergay"),
-    Client(chat_id=987654347, name="Feofil")
-]
+# client = [
+#     Client(chat_id=743509842, name="Valentin"),
+#     Client(chat_id=196569076, name="Oleg"),
+#     Client(chat_id=987656842, name="Vadim"),
+#     Client(chat_id=357907532, name="Sergay"),
+#     Client(chat_id=987654347, name="Feofil")
+# ]
 
 
-restaurant = [
-    Restaurant(name="Istanbul Han Halal")
-]
+# restaurant = [
+#     Restaurant(name="Istanbul Han Halal")
+# ]
 
 
 # feedback = [
@@ -38,48 +38,81 @@ restaurant = [
 # ]
 
 
-def add_line(a):
+def number_of_lines(model):
     with SessionLocal() as session:
-        n = 0
-        for i in a:
-            n = n + 1
+        n = session.query(model).count()
+    return n
+
+
+def add_line(model):
+    with SessionLocal() as session:
+        for i in model:
             session.add(i)
             session.commit()
-    return n
+
+
+def create_restaurant(name):
+    restaurant = Restaurant(
+        name=name
+    )
+    with SessionLocal as session:
+        session.add(restaurant)
+        session.commit()
+
+
+def create_dish(dish_name, dish_cost, dish_type, dish_description, id_restaurant):
+    with SessionLocal() as session:
+        dish = Dish(
+            name=dish_name,
+            cost=dish_cost,
+            type=dish_type,
+            description=dish_description,
+            restaurant_id=id_restaurant
+        )
+        session.add(dish)
+        session.commit()
+
+
+def create_client(chat_id, name):
+    client = Client(
+        chat_id=chat_id,
+        name=name
+    )
+    with SessionLocal as session:
+        session.add(client)
+        session.commit()
 
 
 def create_order(id_client, id_dish, comment):
     with SessionLocal() as session:
-        order = Order(client_id=id_client, comment=comment)
+        order = Order(
+            client_id=id_client,
+            comment=comment
+        )
         session.add(order)
         session.commit()
         for i in id_dish:
-            a = Dish_Order(order_id=order.id, dish_id=i)
+            a = Dish_Order(
+                order_id=order.id,
+                dish_id=i
+            )
             session.add(a)
             session.commit()
 
 
 def create_feedback(id_client, feedback, stars, id_restaurant):
     with SessionLocal() as session:
-        feedback = Feedback(author=id_client, feedback=feedback, stars=stars, restaurant_id=id_restaurant)
+        feedback = Feedback(
+            author=id_client,
+            feedback=feedback,
+            stars=stars,
+            restaurant_id=id_restaurant
+        )
         session.add(feedback)
         session.commit()
 
 
-def create_dish(dish_name, dish_cost, dish_type, dish_description, id_restaurant ):
-    with SessionLocal() as session:
-        dish = Dish(name=dish_name, cost=dish_cost, type=dish_type, description=dish_description, restaurant_id=id_restaurant)
-        session.add(dish)
-        session.commit()
-
-
-def number_of_lines(a):
-    with SessionLocal() as session:
-        n = session.query(a).count()
-    return n
-
-
-def clear_db():
+def clear_all_db():
     list_db_model = [Feedback, Dish_Order, Order, Client, Dish, Restaurant]
     list_str_db_model = ['Feedback', 'Client', 'Dish', 'Restaurant', 'order']
     with SessionLocal() as session:
@@ -90,10 +123,26 @@ def clear_db():
         session.commit()
 
 
-def test_add_line():
-    clear_db()
-    add_line(client)
-    add_line(restaurant)
+def test_clear_db():
+    clear_all_db()
+    assert number_of_lines(Restaurant) == 0
+    assert number_of_lines(Client) == 0
+    assert number_of_lines(Dish) == 0
+    assert number_of_lines(Feedback) == 0
+    assert number_of_lines(Order) == 0
+    assert number_of_lines(Dish_Order) == 0
+
+
+def test_create_restaurant():
+    create_restaurant("Istanbul Han Halal")
+
+
+def test_create_client():
+    create_client(7634562, "Valentin")
+
+
+def test_create_dish():
+    create_dish("Сырники", 147.43, "Основное", "из творога", 1)
 
 
 def test_create_order():
@@ -102,7 +151,3 @@ def test_create_order():
 
 def test_create_feedback():
     create_feedback(1, "хуйня", stars=1, id_restaurant=1)
-
-
-def test_create_dish():
-    create_dish("Сырники", 147.43, "Основное", "из творога", 1)
