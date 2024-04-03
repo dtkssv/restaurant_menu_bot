@@ -96,13 +96,13 @@ def test_add_line():
     add_line(restaurant)
 
 
+def test_create_order():
+    create_order(1, [1, 7], "Шаурма без капусты")
+
+
 def test_create_feedback():
     create_feedback(1, "хуйня", stars=1, id_restaurant=1)
 
 
 def test_create_dish():
     create_dish("Сырники", 147.43, "Основное", "из творога", 1)
-
-
-def test_create_order():
-    create_order(1, [1, 7], "Шаурма без капусты")
