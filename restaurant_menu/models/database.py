@@ -52,7 +52,6 @@ class Dish_Order(Base):
 
 class Dish(Base):
     __tablename__ = "dish"
-
     id = Column(Integer, primary_key=True)
     name = Column(String(50))
     cost = Column(Float)
@@ -64,7 +63,6 @@ class Dish(Base):
 
 class Order(Base):
     __tablename__ = "order"
-
     id = Column(Integer, primary_key=True)
     data = Column(DateTime, default=datetime.now)
     comment = Column(String(500), nullable=True)
