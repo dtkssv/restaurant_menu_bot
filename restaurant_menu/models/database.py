@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import (create_engine, MetaData, Column, ForeignKey, Integer, String, Float, DateTime, BigInteger,
-                        SmallInteger, Table)
+                        SmallInteger)
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
@@ -19,14 +19,12 @@ Base.metadata = metadata
 
 class Restaurant(Base):
     __tablename__ = "restaurant"
-
     id = Column(SmallInteger, primary_key=True)
     name = Column(String(50), unique=True)
 
 
 class Feedback(Base):
     __tablename__ = "feedback"
-
     id = Column(Integer, primary_key=True)
     author = Column(ForeignKey("client.id"))
     feedback = Column(String(500))
@@ -66,6 +64,7 @@ class Order(Base):
     id = Column(Integer, primary_key=True)
     data = Column(DateTime, default=datetime.now)
     comment = Column(String(500), nullable=True)
+    cost = Column(Float, default=0)
     client_id = Column(ForeignKey("client.id"))
     dishes = relationship("Dish_Order", back_populates="order")
 
