@@ -34,7 +34,8 @@ def create_order(id_client, list_id_dish, comment):
             order_cost = order_cost + dish.cost
             session.add(a)
             session.commit()
-        print(order_cost)
+        session.query(Order).filter(Order.id == order.id).update({Order.cost: order_cost})
+        session.commit()
 
 
 def clear_all_db():
@@ -97,8 +98,8 @@ def test_create_dish():
 
 def test_create_order():
     create_order(2, [1, 7, 10], "Шаурма без капусты")
-    # assert number_of_lines(Order) == 1
-    # assert number_of_lines(Dish_Order) == 2
+    assert number_of_lines(Order) == 1
+    assert number_of_lines(Dish_Order) == 3
 
 
 def test_create_feedback():
