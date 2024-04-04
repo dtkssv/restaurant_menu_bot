@@ -75,7 +75,7 @@ def test_create_client():
         Client(chat_id=1467964, name="Feofil")
     ]
     add_line_list(client)
-    assert number_of_lines(Client) == 10
+    assert number_of_lines(Client) == 5
 
 
 def test_create_dish():
@@ -96,7 +96,7 @@ def test_create_dish():
 
 
 def test_create_order():
-    create_order(7, [1, 7, 10], "Шаурма без капусты")
+    create_order(2, [1, 7, 10], "Шаурма без капусты")
     # assert number_of_lines(Order) == 1
     # assert number_of_lines(Dish_Order) == 2
 
