@@ -9,9 +9,9 @@ def number_of_lines(model):
     return n
 
 
-def check_parameter_line(model, line, parameter):
+def check_parameter(model, column, meaning, parameter):
     with SessionLocal() as session:
-        check_parameter = session.query(model).filter(model.id == line).first()
+        check_parameter = session.query(model).filter(getattr(model, column) == meaning).first()
         parameter = getattr(check_parameter, parameter)
         if type(parameter) is float:
             return float("%.2f" % parameter)
@@ -111,7 +111,7 @@ def test_create_order():
     create_order(2, [1, 3, 10], "Шаурма без капусты")
     assert number_of_lines(Order) == 1
     assert number_of_lines(Dish_Order) == 3
-    assert check_parameter_line(Order, 1, "cost") == 265.48
+    assert check_parameter(Order, "id", 1, "cost") == 265.48
 
 
 def test_create_feedback():
@@ -122,7 +122,3 @@ def test_create_feedback():
     ]
     add_line_list(feedback)
     assert number_of_lines(Feedback) == 3
-
-
-def test_1():
-    check_parameter_line(Client, 1, "id")
