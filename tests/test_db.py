@@ -16,7 +16,6 @@ def check_parameter(model, column, meaning, parameter):
         if type(parameter) is float:
             return float("%.2f" % parameter)
         else:
-            print(parameter)
             return parameter
 
 
@@ -76,6 +75,7 @@ def test_create_restaurant():
     ]
     add_line_list(restaurant)
     assert number_of_lines(Restaurant) == 1
+    assert check_parameter(Restaurant, "id", 1, "name") == "Istanbul Han Halal"
 
 
 def test_create_client():
@@ -88,6 +88,7 @@ def test_create_client():
     ]
     add_line_list(client)
     assert number_of_lines(Client) == 5
+    assert check_parameter(Client, "chat_id", 6543456, "name") == "Oleg"
 
 
 def test_create_dish():
@@ -105,6 +106,7 @@ def test_create_dish():
     ]
     add_line_list(dish)
     assert number_of_lines(Dish) == 10
+    assert check_parameter(Dish, "name", "Борщ", "type") == "Суп"
 
 
 def test_create_order():
@@ -122,3 +124,13 @@ def test_create_feedback():
     ]
     add_line_list(feedback)
     assert number_of_lines(Feedback) == 3
+    assert check_parameter(Feedback, "stars", "5", "author") == 1
+
+
+def test_bd():
+    test_clear_db()
+    test_create_restaurant()
+    test_create_client()
+    test_create_dish()
+    test_create_order()
+    test_create_feedback()
