@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "restaurant-menu-bot"
+version = "0.1.0"
+description = "Бот-официант"
+authors = ["team"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "0.63.0"
+pydantic = "1.8.1"
+uvicorn = "0.13.4"
+loguru = "0.5.3"
+python-dotenv = "0.17.0"
+httpx = "^0.27.0"
+psycopg2-binary = "^2.9.9"
+sqlalchemy = "^2.0.29"
+requests = "^2.31.0"
+pytest = "^8.1.1"
+alembic = "^1.13.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
