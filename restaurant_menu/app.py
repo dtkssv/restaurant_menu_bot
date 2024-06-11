@@ -1,6 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
-from .models.database import lifespan
+# from .models.database import lifespan
 from .middlewares import request_handler
 from .routers import setup_routes
 from .routers import TAGS_METADATA
@@ -10,7 +10,7 @@ app = FastAPI(
     title=api_docs_settings.title,
     version=api_docs_settings.version,
     openapi_tags=TAGS_METADATA,
-    lifespan=lifespan
+    # lifespan=lifespan
 )
 app.middleware("http")(request_handler)
 setup_routes(app)

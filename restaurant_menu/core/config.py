@@ -11,7 +11,7 @@ class Settings(pd.BaseSettings):
     """
 
     DEBUG: bool = False
-    BACKEND_CORS_ORIGINS: List[Union[AnyHttpUrl, str]] = ["http://localhost"]  # type: ignore
+    BACKEND_CORS_ORIGINS: tp.List[tp.Union[pd.AnyHttpUrl, str]] = ["http://localhost"]  # type: ignore
 
     ID_MIN: int = 1
 
@@ -22,6 +22,7 @@ class Settings(pd.BaseSettings):
     POSTGRESQL_DATABASE: str
     POSTGRESQL_SCHEMA: str
     DATABASE_URI: tp.Optional[pd.PostgresDsn] = None
+    TEST_DATABASE_URL: str
 
     NODOC: bool = False
     API_ROOT_URL: str = ""
@@ -32,7 +33,7 @@ class Settings(pd.BaseSettings):
 
     @pd.validator("DATABASE_URI", pre=True)
     def assemble_db_connection(
-        self,
+        cls,
         value: tp.Optional[str],
         values: tp.Dict[str, tp.Any],  # noqa: N805, WPS110
     ) -> str:
@@ -40,18 +41,18 @@ class Settings(pd.BaseSettings):
             return value
 
         return pd.PostgresDsn.build(
-            scheme="postgres",
+            scheme="postgresql",
             user=values.get("POSTGRESQL_USER"),
             password=quote_plus(values.get("POSTGRESQL_PASSWORD")),
             host=values.get("POSTGRESQL_HOST"),
             port=values.get("POSTGRESQL_PORT"),
             path="/{0}".format(values.get("POSTGRESQL_DATABASE")),
-            query=f"schema={values.get('POSTGRESQL_SCHEMA')}",
+            # query=f"schema={values.get("POSTGRESQL_SCHEMA")}",
         )
 
     @pd.validator("BACKEND_CORS_ORIGINS", pre=True)
     def set_backend_cors_origins(
-        self,
+        cls,
         v: tp.List[str],
         values: tp.Dict[str, tp.Any],  # noqa: N805, WPS110
     ) -> tp.List[str]:
