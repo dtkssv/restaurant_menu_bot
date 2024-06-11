@@ -1,136 +1,172 @@
-from restaurant_menu.models.database import *
-from sqlalchemy import text
-# import pytest
+import pytest
+
+from pytest_lazyfixture import lazy_fixture
+from sqlalchemy import func, select
+from sqlalchemy.orm import selectinload
+
+from .conftest import session_factory
+from restaurant_menu.models.database import (
+    Client, Dish, Feedback, Order, Restaurant)
 
 
-def number_of_lines(model):
-    with SessionLocal() as session:
-        n = session.query(model).count()
-    return n
-
-
-def check_parameter(model, column, meaning, parameter):
-    with SessionLocal() as session:
-        check_parameter = session.query(model).filter(getattr(model, column) == meaning).first()
-        parameter = getattr(check_parameter, parameter)
-        if type(parameter) is float:
-            return float("%.2f" % parameter)
-        else:
-            return parameter
-
-
-def add_line_list(model):
-    with SessionLocal() as session:
-        for i in model:
-            session.add(i)
-            session.commit()
-
-
-def create_order(id_client, list_id_dish, comment):
-    with SessionLocal() as session:
-        order = Order(
-            client_id=id_client,
-            comment=comment
+@pytest.mark.usefixtures("prepare_db_creating")
+class TestDbCreating:
+    @pytest.mark.parametrize(
+        "model, objects_list, model_attr",
+        (
+            (Restaurant, lazy_fixture("restaurants"), "name"),
+            (Client, lazy_fixture("clients"), "name"),
+            (Feedback, lazy_fixture("feedbacks"), "feedback"),
+            (Dish, lazy_fixture("dishes"), "name"),
+            (Order, lazy_fixture("orders"), "comment"),
         )
-        session.add(order)
-        session.commit()
-        order_cost = 0
-        for i in list_id_dish:
-            a = Dish_Order(
-                order_id=order.id,
-                dish_id=i
-            )
-            dish = session.query(Dish).filter(Dish.id == i).first()
-            order_cost = order_cost + dish.cost
-            session.add(a)
+    )
+    def test_model_create(self, model, objects_list, model_attr):
+        with session_factory() as session:
+            session.add_all(objects_list)
             session.commit()
-        session.query(Order).filter(Order.id == order.id).update({Order.cost: order_cost})
-        session.commit()
+            query = select(func.count()).select_from(model)
+            objects_in_model_count = session.execute(query)
+            assert objects_in_model_count.scalar_one() == len(objects_list)
+            query_all = select(model)
+            res = session.execute(query_all)
+            objects_db = [
+                row.__dict__[model_attr] for row in res.scalars().all()
+            ]
+            objects_sent = [
+                restaurant.__dict__[model_attr] for restaurant in objects_list
+            ]
+            assert objects_db == objects_sent
 
 
-def clear_all_db():
-    list_db_model = [Feedback, Dish_Order, Order, Client, Dish, Restaurant]
-    list_str_db_model = ['Feedback', 'Client', 'Dish', 'Restaurant', 'order']
-    with SessionLocal() as session:
-        for i in list_db_model:
-            session.query(i).delete()
-        for i in list_str_db_model:
-            session.execute(text(f"ALTER SEQUENCE {i}_id_seq RESTART"))
-        session.commit()
+@pytest.mark.usefixtures("prepare_db_relation")
+class TestDbManyToOne:
+    @pytest.mark.parametrize(
+        ("model, join_model, objects_list, model_attr, join_model_attr, "
+         "filter_id"),
+        (
+            (
+                Dish,
+                Restaurant,
+                lazy_fixture("dishes"),
+                "name",
+                "restaurant_dishes",
+                "restaurant_id",
+            ),
+            (
+                Feedback,
+                Client,
+                lazy_fixture("feedbacks"),
+                "feedback",
+                "feedbacks",
+                "author_id",
+            ),
+            (
+                Feedback,
+                Restaurant,
+                lazy_fixture("feedbacks"),
+                "feedback",
+                "feedbacks",
+                "restaurant_id",
+            ),
+            (
+                Order,
+                Client,
+                lazy_fixture("orders"),
+                "comment",
+                "orders",
+                "client_id",
+            ),
+        )
+    )
+    def test_many_to_one_relationship(
+        self, model, join_model, objects_list, model_attr,
+            join_model_attr, filter_id, restaurants, clients):
+        with session_factory() as session:
+            session.add_all(restaurants)
+            session.add_all(clients)
+            session.add_all(objects_list)
+            session.commit()
+            query = (select(model)
+                     .join_from(
+                        join_model, join_model.__dict__[join_model_attr]
+                    )
+                     .where(join_model.id == 1))
+            res = session.execute(query)
+            objects_sent = [
+                row.__dict__[model_attr] for row in objects_list if (
+                    row.__dict__[filter_id] == 1)
+            ]
+            objects_db = [
+                row.__dict__[model_attr] for row in res.scalars().all()
+            ]
+            assert objects_db == objects_sent
 
 
-def test_clear_db():
-    clear_all_db()
-    assert number_of_lines(Restaurant) == 0
-    assert number_of_lines(Client) == 0
-    assert number_of_lines(Dish) == 0
-    assert number_of_lines(Feedback) == 0
-    assert number_of_lines(Order) == 0
-    assert number_of_lines(Dish_Order) == 0
+@pytest.mark.usefixtures("prepare_db_relation")
+class TestDbManyToMany:
+    @pytest.mark.parametrize(
+        ("model, join_model, objects_list, model_attr, join_model_attr, "
+         "fixture"),
+        (
+            (
+             Order,
+             Dish,
+             lazy_fixture("dishes"),
+             "dishes",
+             "name",
+             lazy_fixture("orders"),
+            ),
+        )
+    )
+    def test_many_to_many_relationship(
+        self, model, join_model, objects_list, model_attr, join_model_attr,
+        fixture, restaurants, clients
+    ):
+        with session_factory() as session:
+            session.add_all(restaurants)
+            session.add_all(clients)
+            session.add_all(objects_list)
+            session.add_all(fixture)
+            session.commit()
+            get_order = (select(model)
+                         .options(selectinload(model.__dict__[model_attr]))
+                         .filter_by(id=1))
+            order_1 = (session.execute(get_order)).scalar_one()
+            for dish in objects_list:
+                order_1.__dict__[model_attr].append(dish)
+            session.commit()
+            query = (select(model)
+                     .options(selectinload(model.__dict__[model_attr])
+                     .load_only(join_model.__dict__[join_model_attr])))
+            res = session.execute(query)
+            result = res.unique().scalar_one()
+            assert result.__dict__[model_attr] == objects_list
 
 
-def test_create_restaurant():
-    restaurant = [
-        Restaurant(name="Istanbul Han Halal")
-    ]
-    add_line_list(restaurant)
-    assert number_of_lines(Restaurant) == 1
-    assert check_parameter(Restaurant, "id", 1, "name") == "Istanbul Han Halal"
-
-
-def test_create_client():
-    client = [
-        Client(chat_id=8656453, name="Valentin"),
-        Client(chat_id=6543456, name="Oleg"),
-        Client(chat_id=8765346, name="Vadim"),
-        Client(chat_id=2345776, name="Sergay"),
-        Client(chat_id=1467964, name="Feofil")
-    ]
-    add_line_list(client)
-    assert number_of_lines(Client) == 5
-    assert check_parameter(Client, "chat_id", 6543456, "name") == "Oleg"
-
-
-def test_create_dish():
-    dish = [
-        Dish(name="Шавуха", cost=149.99, type="Основное", description="Песдатая шавуха", restaurant_id=1),
-        Dish(name="Чай", cost=49.99, type="Напиток", description="Песдатый чай", restaurant_id=1),
-        Dish(name="Борщ", cost=99.50, type="Суп", description="Охуенный Истамбуловский борщец", restaurant_id=1),
-        Dish(name="Пахлава", cost=25.49, type="Десерт", description="Жопа слипнется", restaurant_id=1),
-        Dish(name="Цезарь", cost=50, type="Салат", description="Со вкусом ножа в спину", restaurant_id=1),
-        Dish(name="Плов", cost=201.99, type="Основное", description="Охапка дров и плов готов", restaurant_id=1),
-        Dish(name="Кофе", cost=9.99, type="Напиток", description="Крепкий как жопа той телки", restaurant_id=1),
-        Dish(name="Уха", cost=20.99, type="Суп", description="Супец из ухуенной рыбки", restaurant_id=1),
-        Dish(name="Мороженое", cost=27.99, type="Десерт", description="Мясо", restaurant_id=1),
-        Dish(name="Греческий", cost=15.99, type="Салат", description="Со вкусом гнета Османской Империи", restaurant_id=1)
-    ]
-    add_line_list(dish)
-    assert number_of_lines(Dish) == 10
-    assert check_parameter(Dish, "name", "Борщ", "type") == "Суп"
-
-
-def test_create_order():
-    create_order(2, [1, 3, 10], "Шаурма без капусты")
-    assert number_of_lines(Order) == 1
-    assert number_of_lines(Dish_Order) == 3
-    assert check_parameter(Order, "id", 1, "cost") == 265.48
-
-
-def test_create_feedback():
-    feedback = [
-        Feedback(author=1, feedback="Супер рестик", stars=5, restaurant_id=1),
-        Feedback(author=2, feedback="Хуйня, а не рестик", stars=1, restaurant_id=1),
-        Feedback(author=3, feedback="Норм рестик", stars=3, restaurant_id=1)
-    ]
-    add_line_list(feedback)
-    assert number_of_lines(Feedback) == 3
-    assert check_parameter(Feedback, "stars", "5", "author") == 1
-
-
-def test_bd():
-    test_clear_db()
-    test_create_restaurant()
-    test_create_client()
-    test_create_dish()
-    test_create_order()
-    test_create_feedback()
+@pytest.mark.usefixtures("prepare_db_relation")
+class TestDbLogic:
+    def test_order_cost(
+        self, restaurants, clients, dishes, orders
+    ):
+        with session_factory() as session:
+            session.add_all(restaurants)
+            session.add_all(clients)
+            session.add_all(dishes)
+            session.add_all(orders)
+            session.commit()
+            get_order = (select(Order)
+                         .options(selectinload(Order.dishes))
+                         .filter_by(id=1))
+            order_1 = (session.execute(get_order)).scalar_one()
+            for dish in dishes:
+                order_1.dishes.append(dish)
+            session.commit()
+            query = (select(Order)
+                     .options(selectinload(Order.dishes))
+                     .filter_by(id=1))
+            res = session.execute(query)
+            result = res.unique().scalar_one()
+            orders_dishes = sum(dish.cost for dish in result.dishes)
+            sent_dishes = sum(dish.cost for dish in dishes)
+            assert orders_dishes == sent_dishes

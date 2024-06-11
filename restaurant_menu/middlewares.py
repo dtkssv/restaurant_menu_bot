@@ -2,7 +2,7 @@ from fastapi import Request, Response
 
 from .exceptions.api.base import BaseAPIException, InternalServerException
 from .logger import logger
-from .utils import get_time, get_uuid
+from .utilities import get_time, get_uuid
 
 
 async def request_handler(request: Request, call_next):
